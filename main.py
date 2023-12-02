@@ -1,9 +1,9 @@
 import os
+from urllib.parse import unquote, urlparse
 import requests
 from bs4 import BeautifulSoup
 from pydub import AudioSegment
 from dotenv import load_dotenv
-import json
 
 # 加载 .env 文件中的环境变量
 load_dotenv()
@@ -24,18 +24,19 @@ def send_audio_transcription_request(file_path, api_key, api_server, model='whis
         'Authorization': f'Bearer {api_key}',
     }
     files = {
-        'file': ('audio.mp3', open(file_path, 'rb')),
+        'file': (file_path, open(file_path, 'rb')),
         'model': (None, model),
         'response_format': (None, response_format),
     }
     response = requests.post(url, headers=headers, files=files)
+    print(response.text)
     return response
 
 # 存储所有分片的文本
 all_transcriptions = []
 
 # 1. 获取用户输入的网址
-url = 'https://www.xiaoyuzhoufm.com/episode/653bb7d2040778d37ad048c6'
+url = 'https://www.xiaoyuzhoufm.com/episode/652ad79b50cf691d2489e4aa'
 
 # 2. 获取网页源代码并解析
 response = requests.get(url)
@@ -47,12 +48,17 @@ audio_tag = soup.find('meta', {'property': 'og:audio'})
 title = 'podcast_audio'
 audio_url = audio_tag['content']
 
+parsed_url = urlparse(unquote(audio_url))
+extension = os.path.splitext(parsed_url.path)[1]
+
+file_name = f"{title}{extension}"
+
 # 4. 下载音频文件
 response = requests.get(audio_url)
 audio_data = response.content
 
 # 5. 保存音频文件到临时文件
-temp_file_path = os.path.join(os.getcwd(), "temp_" + title)
+temp_file_path = "temp_" + file_name
 with open(temp_file_path, "wb") as f:
     f.write(audio_data)
 
@@ -87,23 +93,22 @@ if file_size > MAX_FILE_SIZE_MB * BYTES_PER_MB:
         os.remove(segment_file_path)
 
 else:
-    # 如果文件大小未超过限制，则重命名临时文件
-    final_file_path = os.path.join(os.getcwd(), title)
-    if os.path.exists(final_file_path):  # 检查文件是否已存在
-        os.remove(final_file_path)  # 如果存在，则删除
-    os.rename(temp_file_path, final_file_path)
-    # 发送到API
-    api_response = send_audio_transcription_request(final_file_path, api_key, api_server)
+    # 如果文件大小未超过限制，发送到API
+    api_response = send_audio_transcription_request(temp_file_path, api_key, api_server)
     # 提取文本并添加到列表中
     transcription_json = api_response.json()
     if 'text' in transcription_json:
         all_transcriptions.append(transcription_json['text'])
 
+# 删除临时音频文件
+os.remove(temp_file_path)
+
 # 将所有文本合并为一个字符串，每个分片之间用换行符分隔
 merged_transcription = '\n'.join(all_transcriptions)
+merged_transcription = merged_transcription.replace(" ", "\n")
 
 # 保存合并后的文本为TXT文件
-output_file_path = os.path.join(os.getcwd(), "transcription.txt")
+output_file_path = "transcription.txt"
 with open(output_file_path, "w", encoding="utf-8") as txt_file:
     txt_file.write(merged_transcription)
 
