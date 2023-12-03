@@ -1,18 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Podcast Transcription</title>
-    <style>
-        /* 在这里添加您的CSS样式 */
-        h1 {
-            color: #333;
-        }
-        /* 其他样式... */
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transcription Result</title>
+  <!-- Include Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom styles for responsive square container */
+    .square {
+      position: relative;
+      width: 100%;
+      /* Responsive based on parent container */
+    }
+
+    .square:before {
+      content: '';
+      display: block;
+      padding-top: 100%;
+      /* Maintain aspect ratio 1:1 */
+    }
+
+    .square img {
+      position: absolute;
+      object-fit: cover;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      border-radius: 6px;
+      /* 添加圆角 */
+    }
+  </style>
 </head>
-<body>
-    <h1>Podcast Transcription</h1>
-    <!--CONTENT_PLACEHOLDER-->
+
+<body class="font-sans leading-normal tracking-normal">
+
+  <div class="container mx-auto p-8 flex justify-center h-screen">
+    <div class="w-full md:w-2/3 flex flex-col items-center">
+      <!-- Title -->
+      <div class="mb-6">
+        <!-- <h1 class="text-2xl text-gray-800">TRANSCRIPTION</h1> -->
+      </div>
+
+      <!-- Image container -->
+      <div class="w-1/2 md:w-1/2 lg:w-1/4"> <!-- 调整这里的宽度比例 -->
+        <div class="square">
+          <img
+            src="https://images.unsplash.com/photo-1542442828-287217bfb87f?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            alt="Transcription Image">
+        </div>
+      </div>
+      <!-- Text container -->
+      <div class="pt-4 text-center"> <!-- 添加 text-center 类以实现文本居中对齐 -->
+        <h2 class="text-xl font-bold text-gray-800">E49.AhaClub周周更新：教我们精湛高效的大厂</h2>
+      </div>
+
+      <!-- Author -->
+      <div class="pt-4 text-center"> <!-- 添加 text-orange-500 类以设置文字颜色为橙黄色 -->
+        <p class="text-lg font-medium text-gray-500">作者名称</p>
+      </div>
+
+      <!-- Paragraphs -->
+      <div class="pt-4 text-gray-1000 text-center">
+        <p class="mb-4"><!--CONTENT_PLACEHOLDER--></p>
+      </div>
+    </div>
+  </div>
+
 </body>
+
 </html>
