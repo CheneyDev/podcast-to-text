@@ -64,9 +64,9 @@ def process_audio_and_send_email(
 
     if file_size > MAX_FILE_SIZE_MB * BYTES_PER_MB:
         # 计算每个片段的持续时间（以毫秒为单位）
-        duration_per_segment_ms = len(audio) / (
+        duration_per_segment_ms = int(len(audio) / (
             file_size / (MAX_FILE_SIZE_MB * BYTES_PER_MB)
-        )
+        ))
 
         # 分割并保存音频片段
         start_ms = 0
@@ -77,19 +77,18 @@ def process_audio_and_send_email(
             segment_file_path = (
                 f"{os.path.splitext(temp_file_path)[0]}_part{part_num}.mp3"
             )
+            part_num += 1  # 递增part_num，以便每个片段都有不同的文件名
             if os.path.exists(segment_file_path):  # 检查文件是否已存在
                 os.remove(segment_file_path)  # 如果存在，则删除
             segment.export(segment_file_path, format="mp3")
             start_ms = end_ms
-            part_num += 1
             # 发送到API
             api_response = send_audio_transcription_request(
                 segment_file_path, api_key, api_server
             )
             # 提取文本并添加到列表中
-            transcription_json = api_response.json()
-            if "text" in transcription_json:
-                all_transcriptions.append(transcription_json["text"])
+            if "text" in api_response:
+                all_transcriptions.append(api_response["text"])
             # 删除临时文件
             os.remove(segment_file_path)
     else:
@@ -99,13 +98,12 @@ def process_audio_and_send_email(
         )
         if "text" in response_json:
             all_transcriptions.append(response_json["text"])
-
+    
     # 删除临时音频文件
     os.remove(temp_file_path)
 
     # 7. 将所有文本合并为一个字符串，每个分片之间用换行符分隔
     merged_transcription = "<br>".join(all_transcriptions)
-    merged_transcription = merged_transcription.replace(" ", "<br>")
 
     # 8. 发送邮件
     resend.api_key = resend_api_key
@@ -133,7 +131,6 @@ if __name__ == "__main__":
     test_url = "https://www.xiaoyuzhoufm.com/episode/653944eb8f151344dc941a01"
 
     # 调用函数处理音频并发送邮件
-    result = process_audio_and_send_email(
+    process_audio_and_send_email(
         test_url, api_key, api_server, resend_api_key, email_sender, email_receiver
     )
-    print(result)
