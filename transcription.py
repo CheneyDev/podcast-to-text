@@ -105,6 +105,13 @@ def process_audio_and_send_email(
     # 7. 将所有文本合并为一个字符串，每个分片之间用换行符分隔
     merged_transcription = "<br>".join(all_transcriptions)
 
+    with open('email_template.html', 'r', encoding='utf-8') as template_file:
+        email_html = template_file.read()
+
+    # 替换模板中的占位符
+    email_html = email_html.replace('<!--CONTENT_PLACEHOLDER-->', merged_transcription)
+
+
     # 8. 发送邮件
     resend.api_key = resend_api_key
     sender_name = "Podcast to Text"
@@ -112,7 +119,7 @@ def process_audio_and_send_email(
         "from": sender_name + " <" + email_sender + ">",
         "to": [email_receiver],  # 指定收件人的电子邮件地址
         "subject": "Transcription Results",
-        "html": merged_transcription,  # 使用合并后的文本作为邮件正文
+        "html": email_html,  # 使用合并后的文本作为邮件正文
     }
     resend.Emails.send(params)
 
