@@ -56,6 +56,7 @@ def process_audio(url: str):
     # 获取网页源代码并解析
     print(url)
     response = requests.get(url)
+    print(response)
     soup = BeautifulSoup(response.content, "html.parser")
 
     # 获取音频文件下载地址
