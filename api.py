@@ -1,11 +1,8 @@
 import os
 from fastapi import FastAPI, HTTPException
 import transcription
-from dotenv import load_dotenv
 
 app = FastAPI()
-
-load_dotenv()  # 加载.env文件中的环境变量
 
 @app.post("/transcribe/")
 async def transcribe(url: str):
