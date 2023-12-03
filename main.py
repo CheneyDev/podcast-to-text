@@ -54,6 +54,7 @@ def send_audio_transcription_request(
 # 后台处理音频的函数
 def process_audio(url: str):
     # 获取网页源代码并解析
+    print(url)
     response = requests.get(url)
     soup = BeautifulSoup(response.content, "html.parser")
 
