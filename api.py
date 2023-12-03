@@ -11,6 +11,7 @@ async def transcribe(url: str):
         api_server = os.getenv('API_SERVER')
         email_sender = os.getenv('SENDER_EMAIL')
         email_receiver = os.getenv('RECEIVER_EMAIL')
+        print(api_server)
         result = transcription.process_audio_and_send_email(url, api_key, api_server, email_sender, email_receiver)
         return {"transcription": result}
     except Exception as e:
