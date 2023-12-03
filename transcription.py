@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from pydub import AudioSegment
 from dotenv import load_dotenv
 import resend
+import json
 
 # 定义常量
 MAX_FILE_SIZE_MB = 23
@@ -36,13 +37,33 @@ def process_audio_and_send_email(
     response = requests.get(url)
     soup = BeautifulSoup(response.content, "html.parser")
 
+    # 找到包含播客信息的 <script> 标签
+    script_tag = soup.find("script", {"name": "schema:podcast-show"})
+    # 解析 JSON 数据
+    podcast_data = json.loads(script_tag.string)
+    # 提取播客系列的信息
+    podcast_series = podcast_data.get("partOfSeries", {})
+    author_name = podcast_series.get("name")
+
+
+
     # 2. 获取音频文件下载地址
     audio_tag = soup.find("meta", {"property": "og:audio"})
+    title_tag = soup.find("meta", {"property": "og:title"})
+    cover_tag = soup.find("meta", {"property": "og:image"})
 
-    title = "podcast_audio"
     audio_url = audio_tag["content"]
+    audio_title = title_tag["content"]
+    sudio_cover = cover_tag["content"]
+
+    print("播客系列名称:", author_name)
+    print("音频标题:", audio_title)
+    print("音频封面:", sudio_cover)
+    print("音频下载地址:", audio_url)
+    
 
     parsed_url = urlparse(unquote(audio_url))
+
     extension = os.path.splitext(parsed_url.path)[1]
     file_name = f"{title}{extension}"
 
@@ -104,12 +125,16 @@ def process_audio_and_send_email(
 
     # 7. 将所有文本合并为一个字符串，每个分片之间用换行符分隔
     merged_transcription = "<br>".join(all_transcriptions)
+    merged_transcription = merged_transcription.replace(" ", "<br>")
 
     with open('email_template.html', 'r', encoding='utf-8') as template_file:
         email_html = template_file.read()
 
     # 替换模板中的占位符
     email_html = email_html.replace('<!--CONTENT_PLACEHOLDER-->', merged_transcription)
+    email_html = email_html.replace('<!--TITLE_PLACEHOLDER-->', audio_title)
+    email_html = email_html.replace('<!--COVER_PLACEHOLDER-->', audio_cover)
+    email_html = email_html.replace('<!--AUTHOR_PLACEHOLDER-->', author_name)
 
 
     # 8. 发送邮件
