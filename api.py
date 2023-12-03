@@ -2,11 +2,10 @@ import os
 from fastapi import FastAPI, HTTPException
 import transcription
 from dotenv import load_dotenv
+from threading import Thread
 
 app = FastAPI()
-
 load_dotenv()  # 加载.env文件中的环境变量
-
 
 @app.post("/transcribe/")
 async def transcribe(url: str):
@@ -16,10 +15,12 @@ async def transcribe(url: str):
         resend_api_key = os.getenv("RESEND_API_KEY")
         email_sender = os.getenv("SENDER_EMAIL")
         email_receiver = os.getenv("RECEIVER_EMAIL")
-        print(api_server)
-        result = transcription.process_audio_and_send_email(
-            url, api_key, api_server, resend_api_key, email_sender, email_receiver
-        )
-        return {"transcription": result}
+
+        # 在线程中执行耗时的操作
+        thread = Thread(target=transcription.process_audio_and_send_email, args=(url, api_key, api_server, resend_api_key, email_sender, email_receiver))
+        thread.start()
+
+        return {"message": "已接受处理请求"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+

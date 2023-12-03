@@ -104,7 +104,8 @@ def process_audio_and_send_email(
     os.remove(temp_file_path)
 
     # 7. 将所有文本合并为一个字符串，每个分片之间用换行符分隔
-    merged_transcription = "\n".join(all_transcriptions)
+    merged_transcription = "<br>".join(all_transcriptions)
+    merged_transcription = merged_transcription.replace(" ", "<br>")
 
     # 8. 发送邮件
     resend.api_key = resend_api_key
@@ -116,9 +117,6 @@ def process_audio_and_send_email(
         "html": merged_transcription,  # 使用合并后的文本作为邮件正文
     }
     resend.Emails.send(params)
-
-    return merged_transcription
-
 
 if __name__ == "__main__":
     # 加载环境变量
