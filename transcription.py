@@ -45,8 +45,6 @@ def process_audio_and_send_email(
     podcast_series = podcast_data.get("partOfSeries", {})
     author_name = podcast_series.get("name")
 
-
-
     # 2. 获取音频文件下载地址
     audio_tag = soup.find("meta", {"property": "og:audio"})
     title_tag = soup.find("meta", {"property": "og:title"})
@@ -54,18 +52,12 @@ def process_audio_and_send_email(
 
     audio_url = audio_tag["content"]
     audio_title = title_tag["content"]
-    sudio_cover = cover_tag["content"]
-
-    print("播客系列名称:", author_name)
-    print("音频标题:", audio_title)
-    print("音频封面:", sudio_cover)
-    print("音频下载地址:", audio_url)
-    
+    audio_cover = cover_tag["content"]
 
     parsed_url = urlparse(unquote(audio_url))
-
+    file_name = "audio_file"
     extension = os.path.splitext(parsed_url.path)[1]
-    file_name = f"{title}{extension}"
+    file_name = f"{file_name}{extension}"
 
     # 3. 下载音频文件
     response = requests.get(audio_url)
@@ -85,9 +77,9 @@ def process_audio_and_send_email(
 
     if file_size > MAX_FILE_SIZE_MB * BYTES_PER_MB:
         # 计算每个片段的持续时间（以毫秒为单位）
-        duration_per_segment_ms = int(len(audio) / (
-            file_size / (MAX_FILE_SIZE_MB * BYTES_PER_MB)
-        ))
+        duration_per_segment_ms = int(
+            len(audio) / (file_size / (MAX_FILE_SIZE_MB * BYTES_PER_MB))
+        )
 
         # 分割并保存音频片段
         start_ms = 0
@@ -119,7 +111,7 @@ def process_audio_and_send_email(
         )
         if "text" in response_json:
             all_transcriptions.append(response_json["text"])
-    
+
     # 删除临时音频文件
     os.remove(temp_file_path)
 
@@ -127,15 +119,14 @@ def process_audio_and_send_email(
     merged_transcription = "<br>".join(all_transcriptions)
     merged_transcription = merged_transcription.replace(" ", "<br>")
 
-    with open('email_template.html', 'r', encoding='utf-8') as template_file:
+    with open("email_template.html", "r", encoding="utf-8") as template_file:
         email_html = template_file.read()
 
     # 替换模板中的占位符
-    email_html = email_html.replace('<!--CONTENT_PLACEHOLDER-->', merged_transcription)
-    email_html = email_html.replace('<!--TITLE_PLACEHOLDER-->', audio_title)
-    email_html = email_html.replace('<!--COVER_PLACEHOLDER-->', audio_cover)
-    email_html = email_html.replace('<!--AUTHOR_PLACEHOLDER-->', author_name)
-
+    email_html = email_html.replace("<!--CONTENT_PLACEHOLDER-->", merged_transcription)
+    email_html = email_html.replace("<!--TITLE_PLACEHOLDER-->", audio_title)
+    email_html = email_html.replace("<!--COVER_PLACEHOLDER-->", audio_cover)
+    email_html = email_html.replace("<!--AUTHOR_PLACEHOLDER-->", author_name)
 
     # 8. 发送邮件
     resend.api_key = resend_api_key
@@ -147,6 +138,7 @@ def process_audio_and_send_email(
         "html": email_html,  # 使用合并后的文本作为邮件正文
     }
     resend.Emails.send(params)
+
 
 if __name__ == "__main__":
     # 加载环境变量
